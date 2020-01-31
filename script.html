@@ -1,0 +1,31 @@
+<script>
+var getEmpDetails = function(listName) {
+    
+    return new Promise(function(resolve, reject) { 
+    console.log('inside promise');
+    $.ajax({
+    url: _spPageContextInfo.siteAbsoluteUrl + "/_api/web/lists/getbytitle('" + listName + "')/items",
+    type: "GET",
+    headers: { "Accept": "application/json;odata=verbose" },
+    success: function (data) {
+        resolve(data);
+        console.log('inside success');
+    },
+    error: function (data) {
+        reject(data.status);
+        console.log(data.status);
+    }
+    
+    });
+  
+}); }
+  
+getEmpDetails('parentTestList'). 
+    then(function (a) { 
+        console.log('Success, You are a GEEK'); 
+        console.log(a.d.results);
+    }). 
+    catch(function () { 
+        console.log('Some error has occured'); 
+    });
+</script>

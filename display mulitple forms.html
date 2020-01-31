@@ -1,0 +1,87 @@
+<html>
+        <div>
+                <table class="datatable1">
+                    <thead>
+                        <tr>
+                            <th>Team</th>
+                            <th>empName</th>
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: teamDetails">
+                        <tr data-bind="click: $root.selectEmployee">
+                            <td data-bind="text: team"></td>
+                            <td data-bind="text: empName"></td>
+                        </tr>
+                    </tbody>
+                </table>
+         </div>
+         <div>
+         <table class="datatable2">
+                    <thead>
+                        <tr>
+                            <th>EmpName</th>
+                            <th>Native</th>
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: Employees">
+                        <tr data-bind="click: $root.selectEmployee">
+                            <td data-bind="text: Title"></td>
+                            <td data-bind="text: Native"></td>
+                        </tr>
+                    </tbody>
+                </table>
+         </div>       
+                
+    
+</html>
+<script>
+$(document).ready(function () {
+            
+            mainFunction();
+
+    });
+    var det = []
+    var modelInstance=null;
+    
+    function mainFunction() {
+   
+    modelInstance = new crudViewModel();
+    ko.applyBindings(modelInstance);
+    getEmpDetails('teamdetails').then(function(a){modelInstance.teamDetails(a.d.results)}).catch(function(a){console.log('Error :' + a);});
+    getEmpDetails('parentTestList').then(function(a){modelInstance.Employees(a.d.results)}).catch(function(a){console.log('Error :' + a);});
+
+    
+}
+    //define view Model
+    getEmpDetails = function(listName) {
+    
+    return new Promise(function(resolve, reject) { 
+    $.ajax({
+    url: _spPageContextInfo.siteAbsoluteUrl + "/_api/web/lists/getbytitle('" + listName + "')/items",
+    type: "GET",
+    headers: { "Accept": "application/json;odata=verbose" },
+    success: function (data) {
+        resolve(data);
+            },
+    error: function (data) {
+        reject(data.status);
+        
+    }
+    
+    });
+  
+}); }  
+    var crudViewModel = function () {
+    var self = this;
+    
+    self.Id = ko.observable();
+    self.team = ko.observable();
+    self.empName = ko.observable();
+    self.Employees = ko.observableArray();
+    self.Title = ko.observable();
+    self.Native = ko.observable();
+    self.teamDetails = ko.observableArray();
+    self.displayStatus = ko.observable();
+    self.year = ko.observable("");
+    self.shouldShowMessage= ko.observable(false);
+    }</script>

@@ -1,0 +1,94 @@
+<script src = "https://ajax.aspnetcdn.com/ajax/knockout/knockout-3.5.0.js" 
+   type = "text/javascript"></script>
+<script>  
+  
+    ExecuteOrDelayUntilScriptLoaded(MainFunction, "sp.js");  
+    var completeEmployeeList = null;  
+    
+  
+    // Class used for saving the field values.  
+    function EmployeeList(name, native) {  
+        var self = this;  
+        self.Name = name;  
+        self.Native = native;   
+    }  
+  
+    //  View Model - JavaScript that defines the data and behavior of your UI  
+    function EmployeeListViewModel(name, native) {  
+        var self = this;  
+        // observableArray equivalent of a regular array,  
+        self.Employees = ko.observableArray([
+            new EmployeeList("dhoni","ranchi")
+        ]);  
+        self.AddEmployees = function (name, native) {  
+            self.Employees.push(new EmployeeList(name, native));          
+        }  
+        self.addNew = function() {
+        self.Employees.push(new EmployeeList("john", "kerala"));
+
+        self.text = ko.observableArray([
+        ko.observable(name),
+        ko.observable(native)
+    ])
+    }
+    }  
+  
+    function MainFunction() {  
+        completeEmployeeList = new EmployeeListViewModel();  
+  
+        // Retrieve the SharePoint list items  
+        retrieveListItems();  
+  
+        // Activates knockout.js  
+        ko.applyBindings(completeEmployeeList);  
+    } 
+     
+  
+    function retrieveListItems() {  
+        var clientContext = new SP.ClientContext();
+        var clientContext = new SP.ClientContext.get_current();  
+        var oList = clientContext.get_web().get_lists().getByTitle('parentTestList');  
+        var camlQuery = new SP.CamlQuery();  
+        camlQuery.set_viewXml("<View><RowLimit>10</RowLimit></View>");  
+        this.collListItem = oList.getItems(camlQuery);  
+        clientContext.load(collListItem);  
+        clientContext.executeQueryAsync(Function.createDelegate(this, this.onQuerySucceeded), Function.createDelegate(this, this.onQueryFailed));  
+    }  
+  
+    function onQuerySucceeded(sender, args) {  
+        var listItemInfo = '';  
+        var listItemEnumerator = collListItem.getEnumerator();  
+        while (listItemEnumerator.moveNext()) {  
+            var currentItem = listItemEnumerator.get_current();  
+            completeEmployeeList.AddEmployees(currentItem.get_item("Title"), currentItem.get_item("Native"));  
+        }  
+    }  
+  
+    function onQueryFailed(sender, args) {  
+        alert('Request failed. ' + args.get_message() + '\n' + args.get_stackTrace());  
+    }     
+</script>  
+  
+<!-- view - HTML markup that defines the appearance of your UI -->  
+<div>  
+  
+    <h2>Details</h2>  
+    <br />    
+    <table border="1">  
+        <thead>  
+            <tr>  
+                <th>Name</th>  
+                <th>Native</th>  
+                
+            </tr>  
+        </thead>  
+        <!-- Iterating through every list item using foreach of KO -->  
+        <tbody data-bind="foreach: Employees">  
+            <tr>  
+                <td data-bind="text: Name"></td>  
+                <td data-bind="text: Native"></td>                  
+            </tr>  
+        </tbody>  
+    </table> 
+    
+</div> 

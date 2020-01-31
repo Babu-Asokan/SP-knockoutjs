@@ -1,0 +1,89 @@
+<html>
+        <div>
+            <label>employee details employee</label>
+                <label>Name</label>
+                    <input data-bind="value: Title">
+                    <label>Native</label>
+                        <input data-bind="value: Native">
+                        <button data-bind="click:$root.clear" type="submit">reset</button>
+                        <button data-bind="click:$root.addtoList('parentTestList')" type="submit">create</button>
+                        <button data-bind="click:$root.updateEmpDetails" type="submit">update</button>
+                        <button data-bind="click:$root.deleteEmpDetails" type="submit">delete</button>
+           
+            </div>
+            <div>
+                    <label>team details</label>
+                        <label>Name</label>
+                            <input data-bind="value: team">
+                            <label>Native</label>
+                                <input data-bind="value: empName">
+                                <button data-bind="click:$root.clear" type="submit">reset</button>
+                                <button data-bind="click:$root.addtoList('teamdetails')" type="submit">create</button>
+                                <button data-bind="click:$root.updateEmpDetails" type="submit">update</button>
+                                <button data-bind="click:$root.deleteEmpDetails" type="submit">delete</button>
+                   
+                    </div>
+            
+</html>
+<script>
+    $(document).ready(function () {
+      modelInstance = new crudViewModel();
+     ko.applyBindings(modelInstance);
+    });
+    var modelInstance=null;
+     
+    var crudViewModel = function () {
+    var self = this;
+    self.Id = ko.observable();
+    self.Title = ko.observable();
+    self.Native = ko.observable();
+    self.team = ko.observable();
+    self.empName = ko.observable();
+    self.Employees = ko.observableArray();
+    self.displayStatus = ko.observable();
+    self.shouldShowMessage= ko.observable(false);
+    
+    //Function to Read all Employees details
+    
+    
+    //Function to clear all fields
+    
+    self.clear = function () {
+    self.displayStatus("");
+    self.Id(0);
+    self.Title("");
+    self.Native("");
+    };
+    
+    }
+    
+    addtoList = function (listName){
+    modelInstance.shouldShowMessage(true);
+    var itemType = "SP.Data."+listName+"ListItem";
+    var emp = {
+    "__metadata": { "type": itemType },
+    "Title": self.Title
+    };
+    
+    $.ajax({
+    url: _spPageContextInfo.siteAbsoluteUrl + "/_api/web/lists/getbytitle('" + listName + "')/items",
+    type: "POST",
+    contentType: "application/json;odata=verbose",
+    data: ko.toJSON(emp),
+    headers: {
+    "Accept": "application/json;odata=verbose",
+    "X-RequestDigest": $("#__REQUESTDIGEST").val()
+    },
+    
+    success: function (data) {
+    alert("New Employee Created Successfully");
+    },
+    
+    error: function (data) {
+    modelInstance.displayStatus("Error in processing request " + data.status);
+    }
+    });
+    modelInstance.clear();
+    };
+    ;//End of view model
+    </script>

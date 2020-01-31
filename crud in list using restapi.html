@@ -1,0 +1,213 @@
+<html>
+        <div>
+                <label>Name</label>
+                    <input data-bind="value: Title">
+                    <label>Native</label>
+                        <input data-bind="value: Native">
+                        <button data-bind="click:$root.clear" type="submit">reset</button>
+                        <button data-bind="click:$root.addEmployee" type="submit">create</button>
+                        <button data-bind="click:$root.updateEmpDetails" type="submit">update</button>
+                        <button data-bind="click:$root.deleteEmpDetails" type="submit">delete</button>
+           
+            </div>
+            <div data-bind="text:displayStatus"></div> 
+            <table class="datatable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Native</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: Employees">
+                    <tr data-bind="click: $root.selectEmployee">
+                        <td data-bind="text: Title"></td>
+                        <td data-bind="text: Native"></td>
+                    </tr>
+                </tbody>
+            </table>
+        
+</html>
+<script>
+    $(document).ready(function () {
+mainFunction();
+});
+var modelInstance=null;
+
+//Function to activate Knockout
+
+function mainFunction() {
+modelInstance = new crudViewModel();
+//modelInstance.errors = ko.validation.group(modelInstance); //for validation of fields
+ko.applyBindings(modelInstance);
+modelInstance.getEmpDetails();
+}
+
+//define view Model
+
+var crudViewModel = function () {
+var self = this;
+var listName = "parentTestList";
+self.Id = ko.observable();
+self.Title = ko.observable();
+self.Native = ko.observable();
+self.Employees = ko.observableArray();
+self.displayStatus = ko.observable();
+self.year = ko.observable("");
+self.shouldShowMessage= ko.observable(false);
+
+//Function to Read all Employees details
+
+self.getEmpDetails = function(){
+$.ajax({
+url: _spPageContextInfo.siteAbsoluteUrl + "/_api/web/lists/getbytitle('" + listName + "')/items",
+type: "GET",
+headers: { "Accept": "application/json;odata=verbose" },
+success: function (data) {
+self.Employees(data.d.results);//add employee details to observable
+},
+error: function (data) {
+self.displayStatus("Error in processing request " + data.status);
+}
+});
+};
+
+
+self.addEmployee = function (){
+self.shouldShowMessage(true);
+var itemType = "SP.Data.ParentTestListListItem";
+var emp = {
+"__metadata": { "type": itemType },
+"Title": self.Title,
+"Native": self.Native
+};
+
+$.ajax({
+url: _spPageContextInfo.siteAbsoluteUrl + "/_api/web/lists/getbytitle('" + listName + "')/items",
+type: "POST",
+contentType: "application/json;odata=verbose",
+data: ko.toJSON(emp),
+headers: {
+"Accept": "application/json;odata=verbose",
+"X-RequestDigest": $("#__REQUESTDIGEST").val()
+},
+
+success: function (data) {
+alert("New Employee Created Successfully");
+self.getEmpDetails();//call to display again
+},
+
+error: function (data) {
+self.displayStatus("Error in processing request " + data.status);
+}
+});
+self.clear();
+};
+
+//Function to get Specific Employee details using its ID
+
+function getEmpById (callback) {
+var url = _spPageContextInfo.siteAbsoluteUrl + "/_api/web/lists/getbytitle('" + listName + "')/items(" + self.Id()+ ")";
+$.ajax({
+url: url,
+type: "GET",
+headers: { "Accept": "application/json;odata=verbose" },
+success: function (data) {
+callback(data);
+},
+
+error: function (data) {
+self.displayStatus("Error in processing request");
+}
+});
+};
+
+//Function to Update Category
+
+self.updateEmpDetails = function () {
+getEmpById(function (data) {
+var itemType = "SP.Data.ParentTestListListItem";
+
+var emp = {
+"__metadata": { "type": itemType },
+"Title": self.Title,
+"Native": self.Native
+};
+
+$.ajax({
+url: data.d.__metadata.uri,
+type: "POST",
+contentType: "application/json;odata=verbose",
+data: ko.toJSON(emp),
+headers: {
+"Accept": "application/json;odata=verbose",
+"X-RequestDigest": $("#__REQUESTDIGEST").val(),
+"X-HTTP-Method": "MERGE",
+"If-Match": data.d.__metadata.etag
+},
+success: function (data) {
+alert("Employee details updated successfully");
+self.getEmpDetails();//call to display again
+self.clear();
+},
+error: function (data) {
+self.displayStatus("Error in processing request " + data.status + " " + data.statusCode);
+}
+});
+});
+};
+
+//Function to Delete Employee details
+
+self.deleteEmpDetails = function (emp) {
+getEmpById(function (data) {
+var itemType = "SP.Data.ParentTestListListItem";
+var emp = {
+"__metadata": { "type": itemType },
+"Title": self.Title,
+"Native": self.Native
+};
+
+$.ajax({
+url: data.d.__metadata.uri,
+type: "POST",
+contentType: "application/json;odata=verbose",
+data: ko.toJSON(emp),
+headers: {
+"Accept": "application/json;odata=verbose",
+"X-RequestDigest": $("#__REQUESTDIGEST").val(),
+"X-HTTP-Method": "DELETE",
+"If-Match": data.d.__metadata.etag
+},
+
+success: function (data) {
+alert("Employee details deleted successfully");
+self.getEmpDetails();//call to display again
+self.clear();
+},
+
+error: function (data) {
+self.displayStatus("Error in processing request " + data.status + " " + data.statusCode);
+}
+});
+});
+};
+
+//Function to Select Employee used for Update and Delete
+
+self.selectEmployee = function (emp) {
+self.Id(emp.Id);
+self.Title(emp.Title);
+self.Native(emp.Native);
+};
+
+//Function to clear all fields
+
+self.clear = function () {
+self.displayStatus("");
+self.Id(0);
+self.Title("");
+self.Native("");
+};
+
+};//End of view model
+</script>

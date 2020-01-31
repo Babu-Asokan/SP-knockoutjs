@@ -1,0 +1,102 @@
+<script>
+$(document).ready(function () {
+mainFunction();
+});
+var modelInstance=null;
+
+//Function to activate Knockout
+
+function mainFunction() {
+modelInstance = new crudViewModel();
+//modelInstance.errors = ko.validation.group(modelInstance); //for validation of fields
+ko.applyBindings(modelInstance);
+getEmpDetails();
+}
+
+function addnew() {  
+        SP.SOD.executeFunc('sp.js', 'SP.ClientContext', showModalPopUp);  
+    };  
+  
+    function showModalPopUp() {  
+        //Set options for Modal PopUp  
+        var options = {  
+            url: 'http://sp2019:27475/sites/Ram/SiteAssets/popupform.aspx', //Set the url of the page  
+            title: 'SharePoint Modal Pop Up', //Set the title for the pop up  
+            allowMaximize: false,  
+            showClose: true,  
+            width: 600,  
+            height: 400  
+        };  
+        //Invoke the modal dialog by passing in the options array variable  
+        SP.SOD.execute('sp.ui.dialog.js', 'SP.UI.ModalDialog.showModalDialog', options);  
+        return false;  
+    }
+
+//define view Model
+
+var crudViewModel = function () {
+var self = this;
+var listName = "teamdetails";
+self.Id = ko.observable();
+self.Title = ko.observable();
+self.team = ko.observable();
+self.empName = ko.observable();
+self.teamdetails = ko.observableArray();
+self.displayStatus = ko.observable();
+self.shouldShowMessage= ko.observable(false);
+
+//Function to Read all Employees details
+
+
+self.addteamDetails = function (listName){
+    self.shouldShowMessage(true);
+var itemType = "SP.Data.TeamdetailsListItem";
+var emp = {
+"__metadata": { "type": itemType },
+"empName": self.name,
+"team": self.team
+};
+
+$.ajax({
+url: _spPageContextInfo.siteAbsoluteUrl + "/_api/web/lists/getbytitle('" + listName + "')/items",
+type: "POST",
+contentType: "application/json;odata=verbose",
+data: ko.toJSON(emp),
+headers: {
+"Accept": "application/json;odata=verbose",
+"X-RequestDigest": $("#__REQUESTDIGEST").val()
+},
+
+success: function (data) {
+alert("New Employee Created Successfully");
+self.getEmpDetails();//call to display again
+},
+
+error: function (data) {
+self.displayStatus("Error in processing request " + data.status);
+}
+});
+self.clear();
+};
+
+self.clear = function () {
+self.displayStatus("");
+self.Id(0);
+self.Title("");
+self.Native("");
+};
+
+};
+getEmpDetails = function(){
+$.ajax({
+url: _spPageContextInfo.siteAbsoluteUrl + "/_api/web/lists/getbytitle('teamdetails')/items",
+type: "GET",
+headers: { "Accept": "application/json;odata=verbose" },
+success: function (data) {
+modelInstance.teamdetails(data.d.results);//add employee details to observable
+},
+error: function (data) {
+modelInstance.displayStatus("Error in processing request " + data.status);
+}
+});
+};

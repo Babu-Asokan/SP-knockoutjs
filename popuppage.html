@@ -1,0 +1,82 @@
+<div>
+    <table cellpadding="10">
+        <tr>
+            <td colspan="2" align="center">
+                <label style="width: 200px; height: 50px; font-size: large; font: bold;">User Info</label>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label style="width: 100px; height: 50px; font-size: large; font: bold;">UserName</label>
+            </td>
+            <td>
+                <input type="text" id="UIName" style="width: 100px;" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label style="width: 100px; height: 50px; font-size: large; font: bold;">Address</label></td>
+            <td>
+                <input type="text" id="UIAddress" style="width: 100px;" /></td>
+        </tr>
+        <tr>
+            <td>
+                <label style="width: 100px; height: 50px; font-size: large; font: bold;">Date of Birth</label></td>
+            <td>
+                <input type="date" id="UIDob" style="width: 100px;" /></td>
+        </tr>
+        <tr>
+            <td>
+                <label style="width: 100px; height: 50px; font-size: large; font: bold;">Message</label></td>
+            <td>
+                <input type="text" id="UIMessage" style="width: 100px;" /></td>
+        </tr>
+        <tr>
+            <td>
+                <input type="button" id="btnSave" value="Save" onclick="createListItem()" />
+
+            </td>
+            <td>
+                <input type="button" id="btnCancel" value="Clear" onclick="ClearFields()" />
+            </td>
+        </tr>
+    </table>
+</div>
+
+
+
+<script>
+    var siteUrl = 'http://sp2019:27475/sites/Ram/'
+    function createListItem() {
+        var myContext = new SP.ClientContext(siteUrl);
+        var oList = myContext.get_web().get_lists().getByTitle('userinfo');
+
+        var itemCreateInfo = new SP.ListItemCreationInformation();
+        this.oListItem = oList.addItem(itemCreateInfo);
+        oListItem.set_item('Title', document.getElementById('UIName').value);
+        oListItem.set_item('Address', document.getElementById('UIAddress').value);
+        oListItem.set_item('DateOfBirth', document.getElementById('UIDob').value);
+        oListItem.set_item('UIDescription', document.getElementById('UIMessage').value);
+        
+        oListItem.update();
+        myContext.load(oListItem);
+        myContext.executeQueryAsync(Function.createDelegate(this, this.InsertQuerySucceeded), Function.createDelegate(this, this.InsertQueryFailed));
+    }
+
+    function InsertQuerySucceeded() {
+        alert('Item created Successfully !!!!');
+
+    }
+
+    function InsertQueryFailed(sender, args) {
+
+        alert('Request failed. ' + args.get_message() + '\n' + args.get_stackTrace());
+    }
+
+    function ClearFields() {
+        document.getElementById('UIName').value = "";
+        document.getElementById('UIAddress').value = "";
+        document.getElementById('UIDob').value = "";
+        document.getElementById('UIMessage').value = "";
+        }
+</script>

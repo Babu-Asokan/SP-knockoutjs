@@ -1,0 +1,48 @@
+<script src = "https://ajax.aspnetcdn.com/ajax/knockout/knockout-3.5.0.js" 
+type = "text/javascript"></script>
+<html>    
+<form >
+        name: <input data-bind="value: Title" placeholder="What needs to be done?" /></br>
+        native: <input data-bind="value: Native" placeholder="What needs to be done?" /></br>
+        <button type="submit" data-bind="click: addTask">Add</button>
+    </form>
+</html>
+
+<script>
+    function Task(data) {
+    this.name = ko.observable(data.name);
+    this.native = ko.observable(data.native);
+}
+
+function TaskListViewModel() {
+    // Data
+    var self = this;
+    
+    self.Title = ko.observable();
+    self.Native = ko.observable();
+    self.tasks = ko.observableArray();
+    
+
+    // Operations
+    self.addTask = function() {
+        console.log('hi'+''+self.Title()+self.Native());
+        var myContext = new SP.ClientContext('http://sp2019:27475/sites/Ram/');
+            var oList = myContext.get_web().get_lists().getByTitle('parentTestList');
+    
+            var itemCreateInfo = new SP.ListItemCreationInformation();
+             var oListItem = oList.addItem(itemCreateInfo);
+            oListItem.set_item('Title', self.Title());
+            oListItem.set_item('Native', self.Native());
+            oListItem.update();
+            myContext.load(oListItem);
+            myContext.executeQueryAsync(function() {
+             alert('Item created Successfully !!!!');        
+        },
+        function(sender, args) {
+           alert('Item not added!!!!');});
+
+       
+    };   
+}
+ko.applyBindings(new TaskListViewModel());
+    </script>
